@@ -1,192 +1,249 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Protokol Hibrida NIST Level 5</title>
-    <link rel="stylesheet" href="style.css">
-    <style>
-        /* Gaya tambahan untuk halaman 'Tentang' dan UI 4-Kunci */
-       .content-section.about-intro { font-size: 1.1em; font-style: italic; color: var(--accent-color); text-align: center; margin-bottom: 25px; }
-       .content-section h3 { font-size: 1.3rem; color: var(--text-color); margin-top: 30px; margin-bottom: 15px; border-left: 3px solid var(--accent-color); padding-left: 10px; }
-       .content-section ul,.content-section ol { padding-left: 20px; margin-bottom: 20px; }
-       .content-section li { margin-bottom: 12px; line-height: 1.6; }
-       .content-section blockquote { border-left: 4px solid var(--secondary-color); padding-left: 15px; margin: 20px 0; font-style: italic; color: #b0b0b0; }
-       .content-section.warning { color: #ffc107; font-weight: bold; }
-        
-        /* Gaya untuk UI 4-Kunci */
-       .key-pair-group {
-            background-color: var(--secondary-color);
-            border: 1px solid var(--border-color);
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-        }
-       .key-pair-group h3 {
-            margin-top: 0;
-            color: var(--accent-color);
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Protokol Hibrida NIST Level 5</title>
+<link rel="stylesheet" href="style.css">
+<style>
+/* Gaya tambahan untuk halaman 'Tentang' dan UI 4-Kunci */
+.content-section.about-intro { font-size: 1.1em; font-style: italic; color: var(--accent-color);
+ text-align: center; margin-bottom: 25px; }
+.content-section h3 { font-size: 1.3rem; color: var(--text-color); margin-top: 30px;
+ margin-bottom: 15px; border-left: 3px solid var(--accent-color); padding-left: 10px;
+}
+ .content-section ul, .content-section ol { padding-left: 20px; margin-bottom: 20px; }
+ .content-section li { margin-bottom: 12px; line-height: 1.6; }
+.content-section blockquote { border-left: 4px solid var(--secondary-color); padding-left:
+ 15px; margin: 20px 0; font-style: italic; color: #b0b0b0; }
+.content-section.warning { color: #ffc107; font-weight: bold; }
+
+/* Gaya untuk UI 4-Kunci */
+.key-pair-group {
+ background-color: var(--secondary-color);
+ border: 1px solid var(--border-color);
+ padding: 20px;
+ border-radius: 8px;
+ margin-bottom: 25px;
+}
+.key-pair-group h3 {
+ margin-top: 0;
+ color: var(--accent-color);
+ border-bottom: 1px solid var(--border-color);
+ padding-bottom: 10px;
+ margin-bottom: 15px;
+}
+</style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Protokol Hibrida NIST Level 5</h1>
-            <p>Enkripsi & Tanda Tangan Hibrida (ECDH/SA P-521 + ML-KEM-1024 & ML-DSA-87)</p>
-        </header>
-        <div class="tabs">
-            <button class="tab-button active" data-tab="generate">1. Buat Kunci</button>
-            <button class="tab-button" data-tab="encrypt">2. Enkripsi & Tanda Tangan</button>
-            <button class="tab-button" data-tab="decrypt">3. Verifikasi & Dekripsi</button>
-            <button class="tab-button" data-tab="about">4. Tentang</button>
-        </div>
-        <main>
-            <div id="generate-view" class="content-section active">
-                <h2>Pembuatan Pasangan Kunci Ganda</h2>
-                <p class="description">Sistem ini memerlukan dua set pasangan kunci per pengguna (total 4 kunci). Satu set untuk kerahasiaan (KEM) dan satu set untuk autentikasi (Tanda Tangan).</p>
+<div class="container">
+<header>
+ <h1>Protokol Hibrida NIST Level 5</h1>
+ <p>Enkripsi & Tanda Tangan Hibrida (ECDH/SA P-521 + ML-KEM-1024 &
+ ML-DSA-87)</p>
+</header>
+<div class="tabs">
+ <button class="tab-button active" data-tab="generate">1. Buat Kunci</button>
+ <button class="tab-button" data-tab="encrypt">2. Enkripsi & Tanda Tangan</button>
+ <button class="tab-button" data-tab="decrypt">3. Verifikasi & Dekripsi</button>
+ <button class="tab-button" data-tab="about">4. Tentang</button>
+</div>
 
-                <div class="key-pair-group">
-                    <h3>Grup Kunci KEM (Kerahasiaan)</h3>
-                    <p class="description" style="font-size: 0.9rem; margin-bottom: 15px;">Gunakan kunci ini untuk <strong>menerima</strong> pesan. Bagikan Kunci Publik KEM Anda kepada siapa saja yang ingin mengirimi Anda pesan rahasia.</p>
-                    <button id="generateKemBtn" class="action-button">Buat Pasangan Kunci KEM (Level 5)</button>
-                    <div class="input-group" style="margin-top: 20px;">
-                        <label for="kemPublicKey">Kunci Publik KEM (JSON - Bagikan ini)</label>
-                        <div class="output-group">
-                            <textarea id="kemPublicKey" rows="7" readonly placeholder="Kunci Publik KEM (ECDH P-521 + ML-KEM-1024) akan dibuat di sini..."></textarea>
-                            <button id="copyKemPublicBtn" class="copy-button">Salin</button>
-                        </div>
-                    </div>
-                    <div class="input-group">
-                        <label for="kemPrivateKey">Kunci Privat KEM (JSON - JAGA KERAHASIAANNYA)</label>
-                        <div class="output-group">
-                            <textarea id="kemPrivateKey" rows="7" readonly placeholder="Kunci Privat KEM (ECDH P-521 + ML-KEM-1024) akan dibuat di sini..."></textarea>
-                            <button id="copyKemPrivateBtn" class="copy-button">Salin</button>
-                        </div>
-                    </div>
-                </div>
+<main>
+ <div id="generate-view" class="content-section active">
+ <h2>Pembuatan Pasangan Kunci Ganda</h2>
+ <p class="description">Sistem ini memerlukan dua set pasangan kunci per
+ pengguna (total 4 kunci).
+ Satu set untuk kerahasiaan (KEM) dan satu set untuk autentikasi
+ (Tanda Tangan).</p>
 
-                <div class="key-pair-group">
-                    <h3>Grup Kunci Tanda Tangan (Autentikasi)</h3>
-                    <p class="description" style="font-size: 0.9rem; margin-bottom: 15px;">Gunakan kunci ini untuk <strong>mengirim</strong> (menandatangani) pesan. Bagikan Kunci Publik Verifikasi Anda agar penerima dapat memvalidasi identitas Anda.</p>
-                    <button id="generateSignBtn" class="action-button">Buat Pasangan Kunci Tanda Tangan (Level 5)</button>
-                    <div class="input-group" style="margin-top: 20px;">
-                        <label for="verifyPublicKey">Kunci Publik Verifikasi (JSON - Bagikan ini)</label>
-                        <div class="output-group">
-                            <textarea id="verifyPublicKey" rows="7" readonly placeholder="Kunci Publik Verifikasi (ECDSA P-521 + ML-DSA-87) akan dibuat di sini..."></textarea>
-                            <button id="copyVerifyPublicBtn" class="copy-button">Salin</button>
-                        </div>
-                    </div>
-                    <div class="input-group">
-                        <label for="signPrivateKey">Kunci Privat Tanda Tangan (JSON - JAGA KERAHASIAANNYA)</label>
-                        <div class="output-group">
-                            <textarea id="signPrivateKey" rows="7" readonly placeholder="Kunci Privat Tanda Tangan (ECDSA P-521 + ML-DSA-87) akan dibuat di sini..."></textarea>
-                            <button id="copySignPrivateBtn" class="copy-button">Salin</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+ <div class="key-pair-group">
+ <h3>Grup Kunci KEM (Kerahasiaan)</h3>
+ <p class="description" style="font-size: 0.9rem; margin-bottom: 15px;">Gunakan kunci ini untuk <strong>menerima</strong> pesan. Bagikan Kunci Publik
+ KEM Anda kepada siapa saja yang ingin mengirimi Anda pesan rahasia.</p>
+ <button id="generateKemBtn" class="action-button">Buat Pasangan Kunci
+ KEM (Level 5)</button>
+ <div class="input-group" style="margin-top: 20px;">
+ <label for="kemPublicKey">Kunci Publik KEM (JSON - Bagikan ini)</label>
+ <div class="output-group">
+ <textarea id="kemPublicKey" rows="7" readonly placeholder="Kunci Publik
+ KEM (ECDH P-521 + ML-KEM-1024) akan dibuat di sini..."></textarea>
+ <button id="copyKemPublicBtn" class="copy-button">Salin</button>
+ </div>
+ </div>
+ <div class="input-group">
+ <label for="kemPrivateKey">Kunci Privat KEM (JSON - JAGA
+ KERAHASIAANNYA)</label>
+ <div class="output-group">
+ <textarea id="kemPrivateKey" rows="7" readonly placeholder="Kunci
+ Privat KEM (ECDH P-521 + ML-KEM-1024) akan dibuat di sini..."></textarea>
+ <button id="copyKemPrivateBtn" class="copy-button">Salin</button>
+ </div>
+ </div>
+ </div>
 
-            <div id="encrypt-view" class="content-section">
-                <h2>Enkripsi & Penandatanganan Pesan (Encrypt-then-Sign)</h2>
-                <p class="description">Untuk mengirim pesan, Anda memerlukan Kunci Publik KEM <strong>penerima</strong> dan Kunci Privat Tanda Tangan <strong>Anda sendiri</strong>.</p>
-                
-                <div class="input-group">
-                    <label for="recipientKemPublicKey">Kunci Publik KEM Penerima (JSON)</label>
-                    <textarea id="recipientKemPublicKey" rows="6" placeholder="Tempel Kunci Publik KEM milik penerima..."></textarea>
-                </div>
-                <div class="input-group">
-                    <label for="senderSignPrivateKey">Kunci Privat Tanda Tangan Anda (JSON)</label>
-                    <textarea id="senderSignPrivateKey" rows="6" placeholder="Tempel Kunci Privat Tanda Tangan milik ANDA..."></textarea>
-                </div>
-                <div class="input-group">
-                    <label for="plainText">Teks Biasa (Plaintext)</label>
-                    <textarea id="plainText" rows="4" placeholder="Tulis pesan rahasia Anda di sini..."></textarea>
-                </div>
-                
-                <button id="encryptBtn" class="action-button">Enkripsi & Tanda Tangani Pesan</button>
-                
-                <div class="input-group" style="margin-top: 30px;">
-                    <label for="encryptedText">Pesan Terenkripsi Final (Base64)</label>
-                    <div class="output-group">
-                        <textarea id="encryptedText" rows="7" readonly placeholder="Objek pesan terenkripsi & terautentikasi (Base64) akan muncul di sini..."></textarea>
-                        <button id="copyEncryptedBtn" class="copy-button">Salin</button>
-                    </div>
-                </div>
-            </div>
+ <div class="key-pair-group">
+ <h3>Grup Kunci Tanda Tangan (Autentikasi)</h3>
+ <p class="description" style="font-size: 0.9rem; margin-bottom: 15px;">Gunakan kunci ini untuk <strong>mengirim</strong> (menandatangani) pesan.
+ Bagikan Kunci Publik Verifikasi Anda agar penerima dapat memvalidasi identitas Anda.</p>
+ <button id="generateSignBtn" class="action-button">Buat Pasangan Kunci
+ Tanda Tangan (Level 5)</button>
+ <div class="input-group" style="margin-top: 20px;">
+ <label for="verifyPublicKey">Kunci Publik Verifikasi (JSON - Bagikan ini)</label>
+ <div class="output-group">
+ <textarea id="verifyPublicKey" rows="7" readonly placeholder="Kunci
+ Publik Verifikasi (ECDSA P-521 + ML-DSA-87) akan dibuat di sini..."></textarea>
+ <button id="copyVerifyPublicBtn" class="copy-button">Salin</button>
+ </div>
+ </div>
+ <div class="input-group">
+ <label for="signPrivateKey">Kunci Privat Tanda Tangan (JSON - JAGA
+ KERAHASIAANNYA)</label>
+ <div class="output-group">
+ <textarea id="signPrivateKey" rows="7" readonly placeholder="Kunci
+ Privat Tanda Tangan (ECDSA P-521 + ML-DSA-87) akan dibuat di sini..."></textarea>
+ <button id="copySignPrivateBtn" class="copy-button">Salin</button>
+ </div>
+ </div>
+ </div>
+ </div>
 
-            <div id="decrypt-view" class="content-section">
-                <h2>Verifikasi & Dekripsi Pesan</h2>
-                <p class="description">Untuk membuka pesan, Anda memerlukan Kunci Privat KEM <strong>Anda sendiri</strong> dan Kunci Publik Verifikasi <strong>pengirim</strong>.</p>
-                
-                <div class="input-group">
-                    <label for="recipientKemPrivateKey">Kunci Privat KEM Anda (JSON)</label>
-                    <textarea id="recipientKemPrivateKey" rows="6" placeholder="Tempel Kunci Privat KEM milik ANDA..."></textarea>
-                </div>
-                <div class="input-group">
-                    <label for="senderVerifyPublicKey">Kunci Publik Verifikasi Pengirim (JSON)</label>
-                    <textarea id="senderVerifyPublicKey" rows="6" placeholder="Tempel Kunci Publik Verifikasi milik pengirim..."></textarea>
-                </div>
-                <div class="input-group">
-                    <label for="cipherText">Pesan Terenkripsi (Base64)</label>
-                    <textarea id="cipherText" rows="7" placeholder="Tempel pesan (Base64) dari pengirim..."></textarea>
-                </div>
-                
-                <button id="decryptBtn" class="action-button">Verifikasi & Dekripsi Pesan</button>
-                
-                <div class="input-group" style="margin-top: 30px;">
-                    <label for="decryptedText">Teks Asli (Decrypted)</label>
-                    <div class="output-group">
-                        <textarea id="decryptedText" rows="4" readonly placeholder="Hasil dekripsi akan muncul di sini SETELAH verifikasi tanda tangan berhasil..."></textarea>
-                        <button id="copyDecryptedBtn" class="copy-button">Salin</button>
-                    </div>
-                </div>
-            </div>
+ <div id="encrypt-view" class="content-section">
+ <h2>Enkripsi & Penandatanganan Pesan (Encrypt-then-Sign)</h2>
+ <p class="description">Untuk mengirim pesan, Anda memerlukan Kunci Publik
+ KEM <strong>penerima</strong> dan Kunci Privat Tanda Tangan <strong>Anda
+ sendiri</strong>.</p>
+ <div class="input-group">
+ <label for="recipientKemPublicKey">Kunci Publik KEM Penerima
+ (JSON)</label>
+ <textarea id="recipientKemPublicKey" rows="6" placeholder="Tempel Kunci
+ Publik KEM milik penerima..."></textarea>
+ </div>
+ <div class="input-group">
+ <label for="senderSignPrivateKey">Kunci Privat Tanda Tangan Anda
+ (JSON)</label>
+ <textarea id="senderSignPrivateKey" rows="6" placeholder="Tempel Kunci
+ Privat Tanda Tangan milik ANDA..."></textarea>
+ </div>
+ <div class="input-group">
+ <label for="plainText">Teks Biasa (Plaintext)</label>
+ <textarea id="plainText" rows="4" placeholder="Tulis pesan rahasia Anda di
+ sini..."></textarea>
+ </div>
+ <button id="encryptBtn" class="action-button">Enkripsi & Tanda Tangani
+ Pesan</button>
+ <div class="input-group" style="margin-top: 30px;">
+ <label for="encryptedText">Pesan Terenkripsi Final (Base64)</label>
+ <div class="output-group">
+ <textarea id="encryptedText" rows="7" readonly placeholder="Objek pesan
+ terenkripsi & terautentikasi (Base64) akan muncul di sini..."></textarea>
+ <button id="copyEncryptedBtn" class="copy-button">Salin</button>
+ </div>
+ </div>
+ </div>
 
-            <div id="about-view" class="content-section">
-                <h3>Tentang Protokol Kriptografi Hibrida NIST Level 5 Ini</h3>
-                <p>Implementasi ini mendemonstrasikan sistem kriptografi hibrida <i>end-to-end</i> yang diautentikasi, yang dirancang untuk mencapai <strong>Kategori Keamanan NIST Level 5</strong>. Tingkat keamanan ini setara dengan kekuatan komputasi yang diperlukan untuk memecahkan enkripsi <strong>AES-256</strong>, dan merupakan tingkat jaminan tertinggi yang distandarisasi oleh National Institute of Standards and Technology (NIST) AS untuk kriptografi post-quantum (PQC).</p>
-            
-                <blockquote>
-                Sistem ini mematuhi mandat migrasi PQC yang ditetapkan oleh berbagai badan standar global dan dirancang untuk melindungi data dari ancaman yang ditimbulkan oleh komputer kuantum skala besar di masa depan.
-                </blockquote>
-            
-                <h3>Arsitektur Keamanan Ganda: Kerahasiaan & Autentikasi</h3>
-                <p>Tidak seperti sistem enkripsi sederhana, alat ini mengimplementasikan dua modul kriptografi hibrida yang berbeda secara bersamaan untuk memastikan keamanan yang komprehensif:</p>
-            
-                <ol>
-                <li>
-                <strong>Modul 1: Kerahasiaan (KEM Hibrida)</strong><br>
-                Untuk memastikan pesan Anda tetap rahasia (kerahasiaan), sistem ini menggunakan <i>Key Encapsulation Mechanism</i> (KEM) hibrida. Mekanisme ini menggabungkan dua algoritma yang telah terbukti untuk menurunkan kunci enkripsi data (AES-GCM 256-bit):
-                <ul>
-                <li><strong>ECDH P-521:</strong> Algoritma kurva eliptik klasik yang menyediakan ~256-bit keamanan terhadap komputer klasik.</li>
-                <li><strong>ML-KEM-1024:</strong> Algoritma PQC standar NIST (FIPS 203) yang menyediakan keamanan Level 5 terhadap komputer kuantum.</li>
-                </ul>
-                </li>
-                <li>
-                <strong>Modul 2: Autentikasi (Tanda Tangan Hibrida)</strong><br>
-                Untuk membuktikan identitas pengirim (autentikasi) dan menjamin bahwa pesan tidak diubah (integritas), sistem ini menerapkan <i>Tanda Tangan Digital</i> hibrida pada ciphertext.
-                <ul>
-                <li><strong>ECDSA P-521:</strong> Algoritma tanda tangan kurva eliptik klasik.</li>
-                <li><strong>ML-DSA-87:</strong> Algoritma tanda tangan PQC standar NIST (FIPS 204) yang menyediakan keamanan Level 5.</li>
-                </ul>
-                </li>
-                </ol>
-            
-                <h3>Model Keamanan "Yang Terbaik dari Kedua Dunia"</h3>
-                <p>Pendekatan hibrida (klasik + PQC) adalah strategi mitigasi risiko yang direkomendasikan. Keamanan sistem ini bergantung pada keyakinan bahwa <i>setidaknya salah satu</i> dari dua komponen (klasik atau PQC) tetap aman. Seorang penyerang harus berhasil memecahkan <i>kedua</i> algoritma—baik algoritma klasik yang telah teruji waktu maupun algoritma PQC yang tahan-kuantum—untuk membahayakan sistem.</p>
-            
-                <h3>Peringatan Arsitektur: Biaya Keamanan Level 5</h3>
-                <p>Peningkatan ke Level 5 memberikan jaminan keamanan maksimum, tetapi datang dengan biaya yang terukur. Secara khusus, tanda tangan digital PQC (ML-DSA-87) secara signifikan lebih besar daripada tanda tangan klasik. Pengguna akan melihat bahwa pesan yang diautentikasi memiliki <i>payload</i> (ukuran data) yang jauh lebih besar, yang merupakan pertukaran (trade-off) yang disengaja untuk mencapai autentikasi tahan-kuantum Level 5.</p>
-            </div>
-        </main>
-        <footer>
-            <p>Menggunakan Web Crypto API (ECDH/SA P-521) & @noble/post-quantum (ML-KEM-1024 & ML-DSA-87)</p>
-        </footer>
-    </div>
-    <script type="module" src="script.js"></script>
+ <div id="decrypt-view" class="content-section">
+ <h2>Verifikasi & Dekripsi Pesan</h2>
+ <p class="description">Untuk membuka pesan, Anda memerlukan Kunci Privat
+ KEM <strong>Anda sendiri</strong> dan Kunci Publik Verifikasi
+ <strong>pengirim</strong>.</p>
+ <div class="input-group">
+ <label for="recipientKemPrivateKey">Kunci Privat KEM Anda (JSON)</label>
+ <textarea id="recipientKemPrivateKey" rows="6" placeholder="Tempel Kunci
+ Privat KEM milik ANDA..."></textarea>
+ </div>
+ <div class="input-group">
+ <label for="senderVerifyPublicKey">Kunci Publik Verifikasi Pengirim
+ (JSON)</label>
+ <textarea id="senderVerifyPublicKey" rows="6" placeholder="Tempel Kunci
+ Publik Verifikasi milik pengirim..."></textarea>
+ </div>
+ <div class="input-group">
+ <label for="cipherText">Pesan Terenkripsi (Base64)</label>
+ <textarea id="cipherText" rows="7" placeholder="Tempel pesan (Base64) dari
+ pengirim..."></textarea>
+ </div>
+ <button id="decryptBtn" class="action-button">Verifikasi & Dekripsi
+ Pesan</button>
+ <div class="input-group" style="margin-top: 30px;">
+ <label for="decryptedText">Teks Asli (Decrypted)</label>
+ <div class="output-group">
+ <textarea id="decryptedText" rows="4" readonly placeholder="Hasil dekripsi
+ akan muncul di sini SETELAH verifikasi tanda tangan berhasil..."></textarea>
+ <button id="copyDecryptedBtn" class="copy-button">Salin</button>
+ </div>
+ </div>
+ </div>
+
+ <div id="about-view" class="content-section">
+ <h3>Tentang Protokol Kriptografi Hibrida NIST Level 5 Ini</h3>
+ <p>Implementasi ini mendemonstrasikan sistem kriptografi hibrida
+ <i>end-to-end</i> yang diautentikasi, yang dirancang untuk mencapai <strong>Kategori
+ Keamanan NIST Level 5</strong>.
+ Tingkat keamanan ini setara dengan kekuatan komputasi
+ yang diperlukan untuk memecahkan enkripsi <strong>AES-256</strong>, dan merupakan
+ tingkat jaminan tertinggi yang distandarisasi oleh National Institute of Standards and
+ Technology (NIST) AS untuk kriptografi post-quantum (PQC).</p>
+ <blockquote>
+ Sistem ini mematuhi mandat migrasi PQC yang ditetapkan oleh berbagai badan
+ standar global dan dirancang untuk melindungi data dari ancaman yang ditimbulkan oleh
+ komputer kuantum skala besar di masa depan.
+ </blockquote>
+ <h3>Arsitektur Keamanan Ganda: Kerahasiaan & Autentikasi</h3>
+ <p>Tidak seperti sistem enkripsi sederhana, alat ini mengimplementasikan dua
+ modul kriptografi hibrida yang berbeda secara bersamaan untuk memastikan keamanan
+ yang komprehensif:</p>
+ <ol>
+ <li>
+ <strong>Modul 1: Kerahasiaan (KEM Hibrida)</strong><br>
+ Untuk memastikan pesan Anda tetap rahasia (kerahasiaan), sistem ini
+ menggunakan <i>Key Encapsulation Mechanism</i> (KEM) hibrida.
+ Mekanisme ini
+ menggabungkan dua algoritma yang telah terbukti untuk menurunkan kunci enkripsi data
+ (AES-GCM 256-bit):
+ <ul>
+ <li><strong>ECDH P-521:</strong> Algoritma kurva eliptik klasik yang
+ menyediakan ~256-bit keamanan terhadap komputer klasik.</li>
+ <li><strong>ML-KEM-1024:</strong> Algoritma PQC standar NIST (FIPS 203)
+ yang menyediakan keamanan Level 5 terhadap komputer kuantum.</li>
+ </ul>
+ </li>
+ <li>
+ <strong>Modul 2: Autentikasi (Tanda Tangan Hibrida)</strong><br>
+ Untuk membuktikan identitas pengirim (autentikasi) dan menjamin bahwa pesan
+ tidak diubah (integritas), sistem ini menerapkan <i>Tanda Tangan Digital</i> hibrida pada
+ ciphertext.
+ <ul>
+ <li><strong>ECDSA P-521:</strong> Algoritma tanda tangan kurva eliptik klasik.</li>
+ <li><strong>ML-DSA-87:</strong> Algoritma tanda tangan PQC standar NIST
+ (FIPS 204) yang menyediakan keamanan Level 5.</li>
+ </ul>
+ </li>
+ </ol>
+ <h3>Model Keamanan "Yang Terbaik dari Kedua Dunia"</h3>
+ <p>Pendekatan hibrida (klasik + PQC) adalah strategi mitigasi risiko yang
+ direkomendasikan. Keamanan sistem ini bergantung pada keyakinan bahwa <i>setidaknya
+ salah satu</i> dari dua komponen (klasik atau PQC) tetap aman.
+ Seorang penyerang harus
+ berhasil memecahkan <i>kedua</i> algoritma-baik algoritma klasik yang telah teruji waktu
+ maupun algoritma PQC yang tahan-kuantum-untuk membahayakan sistem.</p>
+ <h3>Peringatan Arsitektur: Biaya Keamanan Level 5</h3>
+ <p>Peningkatan ke Level 5 memberikan jaminan keamanan maksimum, tetapi
+ datang dengan biaya yang terukur.
+ Secara khusus, tanda tangan digital PQC (ML-DSA-87)
+ secara signifikan lebih besar daripada tanda tangan klasik.
+ Pengguna akan melihat bahwa
+ pesan yang diautentikasi memiliki <i>payload</i> (ukuran data) yang jauh lebih besar, yang
+ merupakan pertukaran (trade-off) yang disengaja untuk mencapai autentikasi
+ tahan-kuantum Level 5.</p>
+ </div>
+</main>
+
+<footer>
+ <p>Menggunakan Web Crypto API (ECDH/SA P-521) & @noble/post-quantum
+ (ML-KEM-1024 & ML-DSA-87)</p>
+</footer>
+</div>
+<script type="module" src="script.js"></script>
 </body>
-                  </html>
-                  
+</html>
